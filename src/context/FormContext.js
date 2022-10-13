@@ -2,13 +2,13 @@ import { createContext, useState, useEffect } from "react";
 
 const FormContext = createContext({})
 
-export const FormProvider = ({ children }) => {
+const title = {
+    0: 'Billing Info',
+    1: 'Shipping Info',
+    2: 'Opt-In'
+}
 
-    const title = {
-        0: 'Billing Info',
-        1: 'Shipping Info',
-        2: 'Opt-In'
-    }
+export const FormProvider = ({ children }) => {
 
     const [page, setPage] = useState(0)
 
@@ -72,30 +72,37 @@ export const FormProvider = ({ children }) => {
         }
     }, [data.sameAsBilling])
 
-    const { billAddress2,
-            sameAsBilling,
-            shipAddress2,
-            optInNews,
-            ...requiredInputs } = data
+    let canSubmit
 
-    const canSubmit = [...Object.values(requiredInputs)].every(Boolean) && page === Object.keys(title).length - 1
+    if (page === Object.keys(title).length -1){
+
+        const { billAddress2,
+                sameAsBilling,
+                shipAddress2,
+                optInNews,
+                ...requiredInputs } = data
+
+        canSubmit = [...Object.values(requiredInputs)].every(Boolean)
+
+    }
     
-    const canNextPage1 = Object.keys(data)
-        .filter(key => key.startsWith('bill') && key !== 'billAddress2')
+    const starter = {
+        0: 'bill',
+        1: 'ship'
+    }
+    
+    const canNextPage = Object.keys(data)
+        .filter(key => key.startsWith(starter[page]) && key !== `${starter[page]}Address2`)
         .map(key => data[key])
         .every(Boolean)
 
-    const canNextPage2 = Object.keys(data)
-        .filter(key => key.startsWith('ship') && key !== 'shipAddress2')
-        .map(key => data[key])
-        .every(Boolean)
     
     const disablePrev = page === 0
 
     const disableNext =
         (page === Object.keys(title).length - 1)
-        || (page === 0 && !canNextPage1)
-        || (page === 1 && !canNextPage2)
+        || (page === 0 && !canNextPage)
+        || (page === 1 && !canNextPage)
 
     const prevHide = page === 0 && "remove-button"
 
